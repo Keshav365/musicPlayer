@@ -6290,11 +6290,90 @@ const addEventOnElements = function (elements, eventType, callback) {
   </li>
   `;
  }
+
+ // search Functionality 
+// --- SEARCH FUNCTIONALITY ---
+
+const searchInput = document.getElementById("searchInput");
+const searchResults = document.getElementById("searchResults");
+
+let searchIndex = -1; // for arrow key navigation
+
+// Show search results while typing
+searchInput.addEventListener("input", function () {
+  const query = this.value.trim().toLowerCase();
+  searchResults.innerHTML = "";
+  searchIndex = -1;
+
+  if (query.length === 0) return;
+
+  const matchedMusic = musicData.filter(music =>
+    music.title.toLowerCase().includes(query) ||
+    music.artist.toLowerCase().includes(query) ||
+    music.album.toLowerCase().includes(query)
+  );
+
+  matchedMusic.forEach((music, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${music.title} - ${music.artist}`;
+    li.classList.add("search-item");
+    li.dataset.index = musicData.indexOf(music); // store the real index
+    searchResults.appendChild(li);
+  });
+});
+
+// When click on a search item
+searchResults.addEventListener("click", function (e) {
+  if (e.target.matches(".search-item")) {
+    const selectedIndex = Number(e.target.dataset.index);
+    playSelectedMusic(selectedIndex);
+  }
+});
+
+// Handle arrow keys and enter
+searchInput.addEventListener("keydown", function (e) {
+  const items = searchResults.querySelectorAll(".search-item");
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    searchIndex = (searchIndex + 1) % items.length;
+    updateActiveSearchItem(items);
+  }
+  if (e.key === "ArrowUp") {
+    e.preventDefault();
+    searchIndex = (searchIndex - 1 + items.length) % items.length;
+    updateActiveSearchItem(items);
+  }
+  if (e.key === "Enter" && searchIndex >= 0) {
+    e.preventDefault();
+    const selectedIndex = Number(items[searchIndex].dataset.index);
+    playSelectedMusic(selectedIndex);
+  }
+});
+
+function updateActiveSearchItem(items) {
+  items.forEach(item => item.classList.remove("active"));
+  if (items[searchIndex]) {
+    items[searchIndex].classList.add("active");
+  }
+}
+
+function playSelectedMusic(index) {
+  lastPlayedMusic = currentMusic;
+  currentMusic = index;
+  changePlayerInfo();
+  changePlaylistItem();
+  searchResults.innerHTML = "";
+  searchInput.value = "";
+  searchIndex = -1;
+}
+
+
  
  // Listen for media key events
  document.addEventListener("keydown", function (event) {
   // Check for play/pause button (Media Play/Pause)
-  if (event.key === "MediaPlayPause" || event.key === "k") { // Some keyboards might send "k" as a fallback
+  if (event.key === "MediaPlayPause" || event.key === "Spacebar") { // Some keyboards might send "k" as a fallback
   playMusic(); // Toggle play/pause
   }
   
